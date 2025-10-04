@@ -1,0 +1,115 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
+// enough when changing adapters.
+// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.sqlite"
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+}
+
+model Deal {
+  id            String    @id @default(cuid())
+  name          String
+  number        String    @unique
+  toLocation    Boolean
+  freeShipping  Boolean   @default(false)
+  price         Float
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // M:N relationship with Sender
+  senders       ShippingQuote[]
+}
+
+model Location {
+  id            String    @id @default(cuid())
+  name          String
+  address1      String?
+  address2      String?
+  city          String?
+  province      String?
+  country       String?
+  zip           String?
+  phone         String?
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // 1:1 relationship with Sender
+  sender        Sender?
+}
+
+model Sender {
+  id          String @id @default(cuid())
+  docType     String
+  docNum      String
+  officeCode  String
+  
+  // 1:1 relationship with Location
+  locationId  String   @unique
+  location    Location @relation(fields: [locationId], references: [id])
+  
+  // N:M relationship with Deal
+  deals       ShippingQuote[]
+}
+
+model ConfigAccessData {
+  id        String @id @default(cuid())
+  user      String
+  pass      String
+  clientId  String
+  urlProd   String
+  urlTest   String
+  
+  // 1:1 relationship with Config
+  configId  String @unique
+  config    Config @relation(fields: [configId], references: [id])
+}
+
+model Config {
+  id                      String  @id @default("config")
+  enabled                 Boolean @default(true)
+  isProduction            Boolean @default(false)
+  freeShippingThreshold   Float?
+  appMode                 String  @default("manual") // Can only be "manual" or "auto"
+  defaultWeight           Float?
+  
+  // 1:1 relationship with ConfigAccessData
+  accessData              ConfigAccessData?
+}
+
+// Intermediate table for M:N relationship between Deal and Sender
+model ShippingQuote {
+  id       String @id @default(cuid())
+  dealId   String
+  senderId String
+  
+  deal     Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  sender   Sender @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  
+  @@unique([dealId, senderId])
+}
