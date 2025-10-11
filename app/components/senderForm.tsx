@@ -8,8 +8,8 @@ export default function SenderForm({actionData, sender, locations}: {actionData?
 	const [selectedLocation, setSelectedLocation] = useState<ShopifyLocation | null>(null)
 
 	const handleLocationChange = (e: any) => {
-		const locationId = e.currentTarget.value
-		const location = locations.find(loc => loc.id === locationId) || null
+		const newLocationId = e.currentTarget.value
+		const location = locations.find(loc => loc.id === newLocationId) || null
 		setSelectedLocation(location)
 	}
 
@@ -27,7 +27,7 @@ export default function SenderForm({actionData, sender, locations}: {actionData?
 										label="ID del remitente" 
 										placeholder="ID generado automáticamente" 
 										name="id"
-										disabled
+										readOnly
 										value={sender.id}
 									></s-text-field>
 								</s-grid-item>
@@ -70,6 +70,13 @@ export default function SenderForm({actionData, sender, locations}: {actionData?
 									value={sender?.officeCode ?? ''}
 								></s-text-field>
 							</s-grid-item>
+
+							<s-switch 
+								label="Activo" 
+								details="Marcar si el remitente está activo" 
+								name="active"
+								checked={sender?.active ?? false}
+							></s-switch>
 						</s-grid>
 					</s-stack>
 				</s-section>
@@ -84,6 +91,7 @@ export default function SenderForm({actionData, sender, locations}: {actionData?
 									error={actionData?.errors?.locationId}
 									value={sender?.locationId ?? ''}
 									onInput={handleLocationChange}
+									required
 								>
 									<s-option value="">Seleccionar Location</s-option>
 									{locations.map(location => <s-option key={location.id} value={location.id} selected={location.id === sender?.locationId}>{location.name}</s-option>)}
@@ -97,64 +105,61 @@ export default function SenderForm({actionData, sender, locations}: {actionData?
 									name="locationName"
 									required
 									error={actionData?.errors?.locationName}
-									value={selectedLocation?.name ?? sender?.location?.name ?? ''}
+									value={selectedLocation?.name ?? sender?.locationName ?? ''}
 								></s-text-field>
 							</s-grid-item>
 
 							<s-grid-item>
 								<s-text-field 
 									label="Dirección 1" 
-									name="address1"
-									required
-									error={actionData?.errors?.address1}
-									value={selectedLocation?.address?.address1 ?? sender?.location?.address1 ?? ''}
+									name="locationAddress1"
+									value={selectedLocation?.address?.address1 ?? sender?.locationAddress1 ?? ''}
+									readOnly
 								></s-text-field>
 							</s-grid-item>
 
 							<s-grid-item>
 								<s-text-field 
 									label="Dirección 2" 
-									name="address2"
-									value={selectedLocation?.address?.address2 ?? sender?.location?.address2 ?? ''}
-                                    disabled
+									name="locationAddress2"
+									value={selectedLocation?.address?.address2 ?? sender?.locationAddress2 ?? ''}
+                                    readOnly
 								></s-text-field>
 							</s-grid-item>
 
 							<s-grid-item>
 								<s-text-field 
 									label="Ciudad" 
-									name="city"
-									required
-									error={actionData?.errors?.city}
-									value={selectedLocation?.address?.city ?? sender?.location?.city ?? ''}
+									name="locationCity"
+									value={selectedLocation?.address?.city ?? sender?.locationCity ?? ''}
+									readOnly
 								></s-text-field>
 							</s-grid-item>
 
 							<s-grid-item>
 								<s-text-field 
 									label="Provincia" 
-									name="province"
-									required
-									error={actionData?.errors?.province}
-									value={selectedLocation?.address?.province ?? sender?.location?.province ?? ''}
+									name="locationProvince"
+									value={selectedLocation?.address?.province ?? sender?.locationProvince ?? ''}
+									readOnly
 								></s-text-field>
 							</s-grid-item>
 
 							<s-grid-item>
 								<s-text-field 
 									label="País" 
-									name="country"
-									value={selectedLocation?.address?.country ?? sender?.location?.country ?? ''}
-                                    disabled
+									name="locationCountry"
+									value={selectedLocation?.address?.country ?? sender?.locationCountry ?? ''}
+                                    readOnly
 								></s-text-field>
 							</s-grid-item>
 
 							<s-grid-item>
 								<s-text-field 
 									label="Código postal" 
-									name="zip"
-									value={selectedLocation?.address?.zip ?? sender?.location?.zip ?? ''}
-                                    disabled
+									name="locationZip"
+									value={selectedLocation?.address?.zip ?? sender?.locationZip ?? ''}
+                                    readOnly
 								></s-text-field>
 							</s-grid-item>
 
@@ -162,20 +167,39 @@ export default function SenderForm({actionData, sender, locations}: {actionData?
 								<s-text-field 
 									label="Teléfono" 
 									placeholder="Ej: +543476624319" 
-									name="phone"
-									value={sender?.location?.phone ?? ''}
+									name="locationPhone"
+									value={selectedLocation?.address?.phone ?? sender?.locationPhone ?? ''}
 								></s-text-field>
 							</s-grid-item>
 						</s-grid>
-
-						<s-switch 
-							label="Activo" 
-							details="Marcar si el remitente está activo" 
-							name="active"
-							checked={sender?.location?.active ?? true}
-						></s-switch>
 					</s-stack>
 				</s-section>
+
+				{sender?.createdAt && sender?.updatedAt && (
+					<s-section heading="Información">
+						<s-grid gap="base" gridTemplateColumns="repeat(auto-fit, minmax(100px, 1fr))">
+							<s-grid-item>
+								<s-text-field 
+									label="Fecha de creación" 
+									placeholder="Ej: 2023-01-01 10:30:00" 
+									name="createdAt"
+									disabled
+									value={sender?.createdAt ? new Date(sender.createdAt).toLocaleString() : ''}
+								></s-text-field>
+							</s-grid-item>
+
+							<s-grid-item>
+								<s-text-field 
+									label="Fecha de última actualización" 
+									placeholder="Ej: 2023-01-01" 
+									name="updatedAt"
+									disabled
+									value={sender?.updatedAt ? new Date(sender.updatedAt).toLocaleString() : ''}
+								></s-text-field>
+							</s-grid-item>
+						</s-grid>
+					</s-section>
+				)}
 
 			</s-stack>
 		</Form>

@@ -72,7 +72,6 @@ export default function DealsIndex() {
       <s-box borderRadius="large" overflow="hidden" border="base">
         <s-table>
           <s-table-header-row>
-            <s-table-header>#</s-table-header>
             <s-table-header>Nombre</s-table-header>
             <s-table-header>Nº Contrato</s-table-header>
             <s-table-header>Precio</s-table-header>
@@ -85,7 +84,6 @@ export default function DealsIndex() {
             {deals.length && (
               deals.map((deal) => (
                 <s-table-row key={deal.id}>
-                  <s-table-cell>{deal.id}</s-table-cell>
                   <s-table-cell>
                     <s-clickable href={`/app/deals/${deal.id}`} padding="small small-400" borderRadius="small">
                       {deal.name}

@@ -1,19 +1,7 @@
 import prisma from "app/db.server"
-import type { Sender } from "@prisma/client"
+import { Sender } from "@prisma/client"
 
 export type SenderWithRelations = Sender & {
-  location: {
-    id: string
-    name: string
-    address1?: string
-    address2?: string
-    city?: string
-    province?: string
-    country?: string
-    zip?: string
-    phone?: string
-    active: boolean
-  }
   deals?: Array<{
     id: string
     deal: {
@@ -29,7 +17,16 @@ export type CreateSenderInput = {
   docType: string
   docNum: string
   officeCode: string
+  active?: boolean
   locationId: string
+  locationName?: string
+  locationAddress1?: string
+  locationAddress2?: string
+  locationCity?: string
+  locationProvince?: string
+  locationCountry?: string
+  locationZip?: string
+  locationPhone?: string
 }
 
 export type UpdateSenderInput = Partial<CreateSenderInput>
@@ -47,7 +44,6 @@ export const senderService = {
     return prisma.sender.findMany({
       ...(includeRelations && {
         include: {
-          location: true,
           deals: {
             include: {
               deal: {
@@ -74,7 +70,6 @@ export const senderService = {
       where: { id },
       ...(includeRelations && {
         include: {
-          location: true,
           deals: {
             include: {
               deal: true
@@ -82,18 +77,6 @@ export const senderService = {
           }
         }
       })
-    })
-  },
-
-  // READ - Get senders by location
-  async getByLocationId(locationId: string): Promise<Sender | null> {
-    return prisma.sender.findFirst({
-      where: {
-        locationId
-      },
-      include: {
-        location: true
-      }
     })
   },
 

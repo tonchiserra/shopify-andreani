@@ -1,7 +1,7 @@
 // Export all services for easy importing
 export { dealService } from "./deal.server"
 export { senderService } from "./sender.server"
-export { locationService, shopifyLocationService } from "./location.server"
+export { locationService } from "./location.server"
 export { configService } from "./config.server"
 export { shippingQuoteService } from "./shipping-quote.server"
 
@@ -19,9 +19,6 @@ export type {
 } from "./sender.server"
 
 export type {
-  LocationWithRelations,
-  CreateLocationInput,
-  UpdateLocationInput,
   ShopifyLocation,
 } from "./location.server"
 

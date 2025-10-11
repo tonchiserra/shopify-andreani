@@ -45,33 +45,25 @@ model Deal {
   senders       ShippingQuote[]
 }
 
-model Location {
-  id            String    @id @default(cuid())
-  name          String
-  address1      String?
-  address2      String?
-  city          String?
-  province      String?
-  country       String?
-  zip           String?
-  phone         String?
-  active        Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  // 1:1 relationship with Sender
-  sender        Sender?
-}
-
 model Sender {
   id          String @id @default(cuid())
-  docType     String
-  docNum      String
-  officeCode  String
+  docType     String?
+  docNum      String?
+  officeCode  String?
+  active      Boolean? @default(false)
+  createdAt     DateTime?  @default(now())
+  updatedAt     DateTime?  @updatedAt
   
-  // 1:1 relationship with Location
-  locationId  String   @unique
-  location    Location @relation(fields: [locationId], references: [id])
+  // 1:1 relationship with Shopify Location
+  locationId        String? @unique
+  locationName      String?
+  locationAddress1  String?
+  locationAddress2  String?
+  locationCity      String?
+  locationProvince  String?
+  locationCountry   String?
+  locationZip       String?
+  locationPhone     String?
   
   // N:M relationship with Deal
   deals       ShippingQuote[]

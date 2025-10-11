@@ -1,21 +1,10 @@
 import prisma from "app/db.server"
-import type { Deal } from "@prisma/client"
+import type { Deal, Sender } from "@prisma/client"
 
 export type DealWithRelations = Deal & {
   senders?: Array<{
     id: string
-    sender: {
-      id: string
-      docType: string
-      docNum: string
-      officeCode: string
-      location: {
-        id: string
-        name: string
-        address1?: string
-        city?: string
-      }
-    }
+    sender: Sender
   }>
 }
 
@@ -58,18 +47,7 @@ export const dealService = {
         include: {
           senders: {
             include: {
-              sender: {
-                include: {
-                  location: {
-                    select: {
-                      id: true,
-                      name: true,
-                      address1: true,
-                      city: true
-                    }
-                  }
-                }
-              }
+              sender: true
             }
           }
         }
@@ -88,11 +66,7 @@ export const dealService = {
         include: {
           senders: {
             include: {
-              sender: {
-                include: {
-                  location: true
-                }
-              }
+              sender: true
             }
           }
         }
