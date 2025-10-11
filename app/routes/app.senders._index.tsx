@@ -1,12 +1,32 @@
-import type { LoaderFunctionArgs } from "react-router";
-import { authenticate } from "../shopify.server";
+import type { LoaderFunctionArgs } from "react-router"
+import { useLoaderData } from "react-router"
+import { authenticate } from "../shopify.server"
+import { senderService } from "app/lib/services/index"
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
-  return null;
+type SenderForTable = {
+  id: string;
+  docType: string;
+  docNum: string;
+  officeCode: string;
+  location?: {
+    name?: string;
+    phone?: string;
+    address1?: string;
+    city?: string;
+    active?: boolean;
+  };
 };
 
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  await authenticate.admin(request)
+  
+  const senders = await senderService.getAll(true)
+  return { senders }
+}
+
 export default function Index() {
+  const { senders } = useLoaderData<typeof loader>()
+
   return (
     <s-stack gap="base" padding="base none">
       <s-stack direction="inline" justifyContent="space-between" alignItems="center">
@@ -17,9 +37,7 @@ export default function Index() {
       <s-box borderRadius="large" overflow="hidden" border="base">
         <s-table>
           <s-table-header-row>
-            <s-table-header>#</s-table-header>
             <s-table-header>Nombre</s-table-header>
-            <s-table-header>Email</s-table-header>
             <s-table-header>Teléfono</s-table-header>
             <s-table-header>Dirección</s-table-header>
             <s-table-header>Ciudad</s-table-header>
@@ -27,24 +45,26 @@ export default function Index() {
           </s-table-header-row>
 
           <s-table-body>
-            <s-table-row>
-              <s-table-cell>1</s-table-cell>
-              <s-table-cell>
-                <s-clickable href="/app/senders/1" padding="small small-400" borderRadius="small">Tonchi Test S.A.</s-clickable>
-              </s-table-cell>
-              <s-table-cell>gonzalo.serra@innovategroup.agency</s-table-cell>
-              <s-table-cell>+543476624319</s-table-cell>
-              <s-table-cell>9 de Julio 1435</s-table-cell>
-              <s-table-cell>Totoras</s-table-cell>
-              <s-table-cell>
-                <s-grid gridTemplateColumns="auto auto" justifyContent="end" gap="small-300">
-                  <s-button icon="edit" variant="primary" href="/app/senders/1"></s-button>
-                  <s-button icon="delete" variant="primary" tone="critical"></s-button>
-                </s-grid>
-              </s-table-cell>
-            </s-table-row>
-
-            {/* ... */}
+            {senders.length && (
+              senders.map((sender: SenderForTable) => (
+                <s-table-row key={sender.id}>
+                  <s-table-cell>
+                    <s-clickable href={`/app/senders/${sender.id}`} padding="small small-400" borderRadius="small">
+                      {sender.location?.name || 'Sin nombre'}
+                    </s-clickable>
+                  </s-table-cell>
+                  <s-table-cell>{sender.location?.phone || '-'}</s-table-cell>
+                  <s-table-cell>{sender.location?.address1 || '-'}</s-table-cell>
+                  <s-table-cell>{sender.location?.city || '-'}</s-table-cell>
+                  <s-table-cell>
+                    <s-grid gridTemplateColumns="auto auto" justifyContent="end" gap="small-300">
+                      <s-button icon="edit" variant="primary" href={`/app/senders/${sender.id}`}></s-button>
+                      <s-button icon="delete" variant="primary" tone="critical"></s-button>
+                    </s-grid>
+                  </s-table-cell>
+                </s-table-row>
+              ))
+            )}
           </s-table-body>
         </s-table>
       </s-box>

@@ -3,17 +3,7 @@ import { authenticate } from "../shopify.server"
 import { dealService } from "app/lib/services/index"
 import { useEffect } from "react"
 import DealForm from "app/components/dealForm"
-
-declare global {
-  interface Window {
-    shopify?: {
-      toast?: {
-        show: (message: string, options?: { duration?: number; isError?: boolean }) => string;
-        hide: (id: string) => void;
-      }
-    }
-  }
-}
+import { showToast } from "app/lib/utils/toast"
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   await authenticate.admin(request)
@@ -69,25 +59,24 @@ export const action = async ({ request, params }: LoaderFunctionArgs) => {
 export default function DealDetail() {
   const [searchParams] = useSearchParams()
   const actionData = useActionData<typeof action>()
-  const currentDeal = useLoaderData<typeof loader>()
+  const deal = useLoaderData<typeof loader>()
   
   useEffect(() => {
-    const success = searchParams.get('success');
-
-    if (success === 'true' && typeof window !== 'undefined' && window.shopify?.toast) {
-      window.shopify.toast.show('¡Contrato creado exitosamente!', {
+    const success = searchParams.get('success')
+    if (success === 'true') {
+      showToast('¡Contrato creado exitosamente!', {
         duration: 5000,
         isError: false
-      });
+      })
       
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.delete('success');
-      const newUrl = `${window.location.pathname}${newSearchParams.toString() ? '?' + newSearchParams.toString() : ''}`;
-      window.history.replaceState({}, '', newUrl);
+      const newSearchParams = new URLSearchParams(searchParams)
+      newSearchParams.delete('success')
+      const newUrl = `${window.location.pathname}${newSearchParams.toString() ? '?' + newSearchParams.toString() : ''}`
+      window.history.replaceState({}, '', newUrl)
     }
 
-    if (actionData?.message && typeof window !== 'undefined' && window.shopify?.toast) {
-      window.shopify.toast.show(actionData.message, {
+    if (actionData?.message) {
+      showToast(actionData.message, {
         duration: 5000,
         isError: !actionData.success
       })
@@ -95,14 +84,14 @@ export default function DealDetail() {
   }, [searchParams, actionData])
 
 
-  if(!currentDeal) return null
+  if(!deal) return null
   
   return (
     <s-page>
       <s-stack gap="base" padding="base none">
-        <s-heading>Contrato &quot;{currentDeal.name}&quot;</s-heading>
+        <s-heading>Contrato &quot;{deal.name}&quot;</s-heading>
 
-        <DealForm actionData={actionData} deal={currentDeal} />
+        <DealForm actionData={actionData} deal={deal} />
       </s-stack>
     </s-page>
   );

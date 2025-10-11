@@ -3,17 +3,7 @@ import { useLoaderData, Form, useActionData } from "react-router"
 import { authenticate } from "../shopify.server"
 import { dealService } from "app/lib/services/index"
 import { useEffect } from "react"
-
-declare global {
-  interface Window {
-    shopify?: {
-      toast?: {
-        show: (message: string, options?: { duration?: number; isError?: boolean }) => string
-        hide: (id: string) => void
-      }
-    }
-  }
-}
+import { showToast } from "app/lib/utils/toast"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request)
@@ -55,8 +45,8 @@ export default function DealsIndex() {
   const actionData = useActionData<typeof action>()
 
   useEffect(() => {
-    if (actionData?.message && typeof window !== 'undefined' && window.shopify?.toast) {
-      window.shopify.toast.show(actionData.message, {
+    if (actionData?.message) {
+      showToast(actionData.message, {
         duration: 5000,
         isError: !actionData.success
       })
@@ -92,22 +82,7 @@ export default function DealsIndex() {
           </s-table-header-row>
 
           <s-table-body>
-            {deals.length === 0 ? (
-              <s-table-row>
-                <s-table-cell>
-                  <s-stack gap="base" padding="large" alignItems="center">
-                    <s-text color="subdued">No hay contratos creados</s-text>
-                    <s-button href="/app/deals/new" variant="primary">Crear tu primer contrato</s-button>
-                  </s-stack>
-                </s-table-cell>
-                <s-table-cell></s-table-cell>
-                <s-table-cell></s-table-cell>
-                <s-table-cell></s-table-cell>
-                <s-table-cell></s-table-cell>
-                <s-table-cell></s-table-cell>
-                <s-table-cell></s-table-cell>
-              </s-table-row>
-            ) : (
+            {deals.length && (
               deals.map((deal) => (
                 <s-table-row key={deal.id}>
                   <s-table-cell>{deal.id}</s-table-cell>

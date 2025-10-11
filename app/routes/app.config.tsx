@@ -3,17 +3,7 @@ import { authenticate } from "../shopify.server"
 import { boundary } from "@shopify/shopify-app-react-router/server"
 import { AppMode, configService } from "app/lib/services/index"
 import { useEffect } from "react"
-
-declare global {
-  interface Window {
-    shopify?: {
-      toast?: {
-        show: (message: string, options?: { duration?: number; isError?: boolean }) => string;
-        hide: (id: string) => void;
-      }
-    }
-  }
-}
+import { showToast } from "app/lib/utils/toast"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request)
@@ -57,8 +47,8 @@ export default function Index() {
   const actionData = useActionData<typeof action>()
   
   useEffect(() => {
-    if (actionData?.message && typeof window !== 'undefined' && window.shopify?.toast) {
-      window.shopify.toast.show(actionData.message, {
+    if(actionData?.message) {
+      showToast(actionData.message, {
         duration: 5000,
         isError: !actionData.success
       })

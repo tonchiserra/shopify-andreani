@@ -4,17 +4,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server"
 import { dealService } from "app/lib/services/index"
 import { useEffect } from "react"
 import DealForm from "app/components/dealForm"
-
-declare global {
-  interface Window {
-    shopify?: {
-      toast?: {
-        show: (message: string, options?: { duration?: number; isError?: boolean }) => string;
-        hide: (id: string) => void;
-      }
-    }
-  }
-}
+import { showToast } from "app/lib/utils/toast"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request)
@@ -67,8 +57,8 @@ export default function NewDeal() {
   const actionData = useActionData<typeof action>()
   
   useEffect(() => {
-    if (actionData?.message && typeof window !== 'undefined' && window.shopify?.toast) {
-      window.shopify.toast.show(actionData.message, {
+    if (actionData?.message) {
+      showToast(actionData.message, {
         duration: 5000,
         isError: !actionData.success
       })
