@@ -1,17 +1,20 @@
 import { type LoaderFunctionArgs, useActionData, useLoaderData, useSearchParams } from "react-router"
 import { authenticate } from "../shopify.server"
-import { dealService } from "app/lib/services/index"
+import { dealService, senderService } from "app/lib/services/index"
 import { useEffect } from "react"
 import DealForm from "app/components/dealForm"
-import { showToast } from "app/lib/utils/toast"
+import { showToast } from "app/lib/utils/shopify-apis"
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   await authenticate.admin(request)
 
   const { id } = params
-  const deal = await dealService.getById(`${id}`)
+  const [deal, senders] = await Promise.all([
+    dealService.getById(`${id}`),
+    senderService.getAll(false)
+  ])
 
-  return deal
+  return { deal, senders }
 }
 
 export const action = async ({ request, params }: LoaderFunctionArgs) => {
@@ -21,12 +24,15 @@ export const action = async ({ request, params }: LoaderFunctionArgs) => {
   try {
     const formData = await request.formData()
     
+    const senderIds = formData.getAll('senderIds') as string[]
+    
     const dealData = {
       name: formData.get('name') as string,
       number: formData.get('number') as string,
       toLocation: formData.get('toLocation') === 'on',
       freeShipping: formData.get('freeShipping') === 'on',
       price: parseFloat(formData.get('price') as string) || 0,
+      senderIds: senderIds.filter(id => id.trim() !== '')
     }
     
     if (!dealData.name || !dealData.number) {
@@ -59,7 +65,7 @@ export const action = async ({ request, params }: LoaderFunctionArgs) => {
 export default function DealDetail() {
   const [searchParams] = useSearchParams()
   const actionData = useActionData<typeof action>()
-  const deal = useLoaderData<typeof loader>()
+  const { deal, senders } = useLoaderData<typeof loader>()
   
   useEffect(() => {
     const success = searchParams.get('success')
@@ -91,8 +97,8 @@ export default function DealDetail() {
       <s-stack gap="base" padding="base none">
         <s-heading>Contrato &quot;{deal.name}&quot;</s-heading>
 
-        <DealForm actionData={actionData} deal={deal} />
+        <DealForm actionData={actionData} deal={deal} senders={senders} />
       </s-stack>
     </s-page>
-  );
+  )
 }

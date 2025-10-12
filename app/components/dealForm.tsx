@@ -1,8 +1,21 @@
 import { Form } from "react-router"
-import { DealWithRelations } from "app/lib/services/index"
+import { DealWithRelations, SenderWithRelations } from "app/lib/services/index"
+import { useState } from "react"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export default function DealForm({actionData, deal}: {actionData?: any, deal?: DealWithRelations}) {
+export default function DealForm({actionData, deal, senders = []}: {actionData?: any, deal?: DealWithRelations, senders?: SenderWithRelations[]}) {
+
+	const [selectedSenderIds, setSelectedSenderIds] = useState<string[]>(
+		deal?.senders?.map(s => s.sender.id) || []
+	)
+
+	const handleSenderChange = (senderId: string, isChecked: boolean) => {
+		if (isChecked) {
+			setSelectedSenderIds(prev => [...prev, senderId])
+		} else {
+			setSelectedSenderIds(prev => prev.filter(id => id !== senderId))
+		}
+	}
 
 	return (
 		<Form method="post" data-save-bar>
@@ -75,6 +88,28 @@ export default function DealForm({actionData, deal}: {actionData?: any, deal?: D
 						></s-switch>
 					</s-stack>
 				</s-section>
+
+				{senders.length > 0 && (
+					<s-section heading="Remitentes asociados">
+						<s-stack gap="base">
+							<s-text>
+								Selecciona los remitentes que estarán asociados a este contrato
+							</s-text>
+							<s-stack gap="none">
+								{senders.map((sender) => (
+									<s-checkbox
+										key={sender.id}
+										label={`${sender.locationName} - ${sender.locationAddress1}, ${sender.locationCity}`}
+										name="senderIds"
+										value={sender.id}
+										checked={selectedSenderIds.includes(sender.id)}
+										onChange={(e: any) => handleSenderChange(sender.id, e.currentTarget.checked)}
+									/>
+								))}
+							</s-stack>
+						</s-stack>
+					</s-section>
+				)}
 
 				{deal?.createdAt && deal?.updatedAt && (
 					<s-section heading="Información">

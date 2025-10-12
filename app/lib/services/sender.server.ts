@@ -1,15 +1,10 @@
 import prisma from "app/db.server"
-import { Sender } from "@prisma/client"
+import { Sender, Deal } from "@prisma/client"
 
 export type SenderWithRelations = Sender & {
   deals?: Array<{
     id: string
-    deal: {
-      id: string
-      name: string
-      number: string
-      price: number
-    }
+    deal: Deal
   }>
 }
 
@@ -27,6 +22,7 @@ export type CreateSenderInput = {
   locationCountry?: string
   locationZip?: string
   locationPhone?: string
+  dealIds?: string[]
 }
 
 export type UpdateSenderInput = Partial<CreateSenderInput>
@@ -34,8 +30,19 @@ export type UpdateSenderInput = Partial<CreateSenderInput>
 export const senderService = {
   // CREATE - Create a new sender
   async create(data: CreateSenderInput): Promise<Sender> {
+    const { dealIds, ...senderData } = data
+    
     return prisma.sender.create({
-      data
+      data: {
+        ...senderData,
+        ...(dealIds && dealIds.length > 0 && {
+          deals: {
+            create: dealIds.map(dealId => ({
+              deal: { connect: { id: dealId } }
+            }))
+          }
+        })
+      }
     })
   },
 
@@ -82,9 +89,30 @@ export const senderService = {
 
   // UPDATE - Update sender
   async update(id: string, data: UpdateSenderInput): Promise<Sender> {
-    return prisma.sender.update({
-      where: { id },
-      data
+    const { dealIds, ...senderData } = data
+    
+    return prisma.$transaction(async (tx) => {
+      const updatedSender = await tx.sender.update({
+        where: { id },
+        data: senderData
+      })
+
+      if(dealIds !== undefined) {
+        await tx.shippingQuote.deleteMany({
+          where: { senderId: id }
+        })
+
+        if(dealIds.length > 0) {
+          await tx.shippingQuote.createMany({
+            data: dealIds.map(dealId => ({
+              senderId: id,
+              dealId
+            }))
+          })
+        }
+      }
+
+      return updatedSender
     })
   },
 

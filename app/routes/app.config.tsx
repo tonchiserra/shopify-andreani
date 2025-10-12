@@ -3,7 +3,7 @@ import { authenticate } from "../shopify.server"
 import { boundary } from "@shopify/shopify-app-react-router/server"
 import { AppMode, configService } from "app/lib/services/index"
 import { useEffect } from "react"
-import { showToast } from "app/lib/utils/toast"
+import { showToast } from "app/lib/utils/shopify-apis"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request)

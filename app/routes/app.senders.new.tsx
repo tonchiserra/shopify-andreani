@@ -1,17 +1,21 @@
 import { type HeadersFunction, type LoaderFunctionArgs, useActionData, redirect, useLoaderData } from "react-router"
 import { authenticate } from "../shopify.server"
 import { boundary } from "@shopify/shopify-app-react-router/server"
-import { senderService, locationService } from "app/lib/services/index"
+import { senderService, locationService, dealService } from "app/lib/services/index"
 import { useEffect } from "react"
 import SenderForm from "app/components/senderForm"
-import { showToast } from "app/lib/utils/toast"
+import { showToast } from "app/lib/utils/shopify-apis"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request)
 
-  const locations = await locationService.getAll(request)
+  const [locations, deals, senders] = await Promise.all([
+    locationService.getAll(request),
+    dealService.getAll(false),
+    senderService.getAll(false)
+  ])
 
-  return { locations }
+  return { locations, deals, senders }
 }
 
 export const action = async ({ request }: LoaderFunctionArgs) => {
@@ -19,6 +23,8 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
   
   try {
     const formData = await request.formData()
+    
+    const dealIds = formData.getAll('dealIds') as string[]
     
     const senderData = {
       docType: formData.get('docType') as string,
@@ -33,7 +39,8 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
       locationProvince: formData.get('locationProvince') as string,
       locationCountry: formData.get('locationCountry') as string,
       locationZip: formData.get('locationZip') as string,
-      locationPhone: formData.get('locationPhone') as string
+      locationPhone: formData.get('locationPhone') as string,
+      dealIds: dealIds.filter(id => id.trim() !== '')
     }
     
     const errors: Record<string, string> = {}
@@ -68,7 +75,7 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
 
 export default function NewSender() {
   const actionData = useActionData<typeof action>()
-  const { locations } = useLoaderData<typeof loader>()
+  const { locations, deals, senders } = useLoaderData<typeof loader>()
   
   useEffect(() => {
     if (actionData?.message) {
@@ -84,7 +91,7 @@ export default function NewSender() {
       <s-stack gap="base" padding="base none">
         <s-heading>Crear Nuevo Remitente</s-heading>
 
-        <SenderForm actionData={actionData} locations={locations} />
+        <SenderForm actionData={actionData} locations={locations} deals={deals} senders={senders} />
       </s-stack>
     </s-page>
   )

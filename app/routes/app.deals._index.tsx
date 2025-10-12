@@ -1,9 +1,11 @@
 import type { LoaderFunctionArgs } from "react-router"
-import { useLoaderData, Form, useActionData } from "react-router"
+import { useLoaderData, useActionData } from "react-router"
 import { authenticate } from "../shopify.server"
 import { dealService } from "app/lib/services/index"
 import { useEffect } from "react"
-import { showToast } from "app/lib/utils/toast"
+import { showToast } from "app/lib/utils/shopify-apis"
+import DealsTable from "app/components/dealsTable"
+import NoContent from "app/components/noContent"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request)
@@ -53,15 +55,6 @@ export default function DealsIndex() {
     }
   }, [actionData])
 
-  const handleDeleteClick = (dealId: string, dealName: string) => {
-    if (confirm(`¿Estás seguro de que deseas eliminar el contrato "${dealName}"? Esta acción no se puede deshacer.`)) {
-      const form = document.getElementById(`delete-form-${dealId}`) as HTMLFormElement;
-      if (form) {
-        form.submit();
-      }
-    }
-  }
-
   return (
     <s-stack gap="base" padding="base none">
       <s-stack direction="inline" justifyContent="space-between" alignItems="center">
@@ -69,61 +62,11 @@ export default function DealsIndex() {
         <s-button href="/app/deals/new" variant="primary">Crear Contrato</s-button>
       </s-stack>
 
-      <s-box borderRadius="large" overflow="hidden" border="base">
-        <s-table>
-          <s-table-header-row>
-            <s-table-header>Nombre</s-table-header>
-            <s-table-header>Nº Contrato</s-table-header>
-            <s-table-header>Precio</s-table-header>
-            <s-table-header>¿Envío sucursal?</s-table-header>
-            <s-table-header>¿Envío gratis?</s-table-header>
-            <s-table-header></s-table-header>
-          </s-table-header-row>
-
-          <s-table-body>
-            {deals.length && (
-              deals.map((deal) => (
-                <s-table-row key={deal.id}>
-                  <s-table-cell>
-                    <s-clickable href={`/app/deals/${deal.id}`} padding="small small-400" borderRadius="small">
-                      {deal.name}
-                    </s-clickable>
-                  </s-table-cell>
-                  <s-table-cell>{deal.number}</s-table-cell>
-                  <s-table-cell>${deal.price.toFixed(2)}</s-table-cell>
-                  <s-table-cell>
-                    <s-badge tone={deal.toLocation ? "success" : "critical"}>
-                      {deal.toLocation ? "Sí" : "No"}
-                    </s-badge>
-                  </s-table-cell>
-                  <s-table-cell>
-                    <s-badge tone={deal.freeShipping ? "success" : "critical"}>
-                      {deal.freeShipping ? "Sí" : "No"}
-                    </s-badge>
-                  </s-table-cell>
-                  <s-table-cell>
-                    <s-grid gridTemplateColumns="auto auto" justifyContent="end" gap="small-300">
-                      <s-button icon="edit" variant="primary" href={`/app/deals/${deal.id}`}></s-button>
-                      
-                      <Form method="post" id={`delete-form-${deal.id}`} style={{ display: 'inline' }}>
-                        <input type="hidden" name="intent" value="delete" />
-                        <input type="hidden" name="dealId" value={deal.id} />
-                        <s-button 
-                          icon="delete" 
-                          variant="primary" 
-                          tone="critical"
-                          type="button"
-                          onClick={() => handleDeleteClick(deal.id, deal.name)}
-                        ></s-button>
-                      </Form>
-                    </s-grid>
-                  </s-table-cell>
-                </s-table-row>
-              ))
-            )}
-          </s-table-body>
-        </s-table>
-      </s-box>
+      { 
+        deals.length === 0 
+        ? <NoContent message="No hay contratos disponibles. Empieza creando uno nuevo." cta="/app/deals/new" ctaLabel="Crear Contrato" />
+        : <DealsTable deals={deals} />
+      }
     </s-stack>
   )
 }

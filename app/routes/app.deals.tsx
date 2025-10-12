@@ -9,7 +9,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function Index() {
   return (
-    <s-page>
+    <s-page inlineSize="large">
       <Outlet />
     </s-page>
   );

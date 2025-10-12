@@ -1,16 +1,31 @@
 import { Form } from "react-router"
-import { SenderWithRelations, ShopifyLocation } from "app/lib/services/index"
+import { SenderWithRelations, ShopifyLocation, DealWithRelations } from "app/lib/services/index"
 import { useState } from "react"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export default function SenderForm({actionData, sender, locations}: {actionData?: any, sender?: SenderWithRelations | null, locations: ShopifyLocation[] }) {
+export default function SenderForm({actionData, sender, locations, deals = [], senders = []}: {actionData?: any, sender?: SenderWithRelations | null, locations: ShopifyLocation[], deals?: DealWithRelations[], senders?: SenderWithRelations[]}) {
 
 	const [selectedLocation, setSelectedLocation] = useState<ShopifyLocation | null>(null)
+	const [selectedDealIds, setSelectedDealIds] = useState<string[]>(
+		sender?.deals?.map(d => d.deal.id) || []
+	)
 
 	const handleLocationChange = (e: any) => {
 		const newLocationId = e.currentTarget.value
 		const location = locations.find(loc => loc.id === newLocationId) || null
 		setSelectedLocation(location)
+	}
+
+	const handleDealChange = (dealId: string, isChecked: boolean) => {
+		if (isChecked) {
+			setSelectedDealIds(prev => [...prev, dealId])
+		} else {
+			setSelectedDealIds(prev => prev.filter(id => id !== dealId))
+		}
+	}
+
+	const isInUse = (locationId: string) => {
+		return senders.some(s => s.locationId === locationId && s.id !== sender?.id)
 	}
 
 	return (
@@ -94,7 +109,7 @@ export default function SenderForm({actionData, sender, locations}: {actionData?
 									required
 								>
 									<s-option value="">Seleccionar Location</s-option>
-									{locations.map(location => <s-option key={location.id} value={location.id} selected={location.id === sender?.locationId}>{location.name}</s-option>)}
+									{locations.map(location => <s-option key={location.id} value={location.id} selected={location.id === sender?.locationId} disabled={isInUse(location.id)}>{location.name}</s-option>)}
 								</s-select>
 							</s-grid-item>
 
@@ -174,6 +189,28 @@ export default function SenderForm({actionData, sender, locations}: {actionData?
 						</s-grid>
 					</s-stack>
 				</s-section>
+
+				{deals.length > 0 && (
+					<s-section heading="Contratos asociados">
+						<s-stack gap="base">
+							<s-text>
+								Selecciona los contratos que estarán asociados a este remitente
+							</s-text>
+							<s-stack gap="none">
+								{deals.map((deal) => (
+									<s-checkbox
+										key={deal.id}
+										label={`${deal.name} - Nº ${deal.number}`}
+										name="dealIds"
+										value={deal.id}
+										checked={selectedDealIds.includes(deal.id)}
+										onChange={(e: any) => handleDealChange(deal.id, e.currentTarget.checked)}
+									/>
+								))}
+							</s-stack>
+						</s-stack>
+					</s-section>
+				)}
 
 				{sender?.createdAt && sender?.updatedAt && (
 					<s-section heading="Información">

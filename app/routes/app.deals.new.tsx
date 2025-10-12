@@ -1,17 +1,17 @@
-import { type HeadersFunction, type LoaderFunctionArgs, useActionData, redirect } from "react-router"
+import { type HeadersFunction, type LoaderFunctionArgs, useActionData, redirect, useLoaderData } from "react-router"
 import { authenticate } from "../shopify.server"
 import { boundary } from "@shopify/shopify-app-react-router/server"
-import { dealService } from "app/lib/services/index"
+import { dealService, senderService } from "app/lib/services/index"
 import { useEffect } from "react"
 import DealForm from "app/components/dealForm"
-import { showToast } from "app/lib/utils/toast"
+import { showToast } from "app/lib/utils/shopify-apis"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request)
   
-  // Por ahora retornamos un objeto vacío, más adelante podemos agregar datos necesarios
-  // como lista de senders disponibles para seleccionar
-  return { senders: [] }
+  const senders = await senderService.getAll(false)
+  
+  return { senders }
 }
 
 export const action = async ({ request }: LoaderFunctionArgs) => {
@@ -20,12 +20,15 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
   try {
     const formData = await request.formData()
     
+    const senderIds = formData.getAll('senderIds') as string[]
+    
     const dealData = {
       name: formData.get('name') as string,
       number: formData.get('number') as string,
       toLocation: formData.get('toLocation') === 'on',
       freeShipping: formData.get('freeShipping') === 'on',
       price: parseFloat(formData.get('price') as string) || 0,
+      senderIds: senderIds.filter(id => id.trim() !== '')
     }
     
     if (!dealData.name || !dealData.number) {
@@ -55,6 +58,7 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
 
 export default function NewDeal() {
   const actionData = useActionData<typeof action>()
+  const { senders } = useLoaderData<typeof loader>()
   
   useEffect(() => {
     if (actionData?.message) {
@@ -70,7 +74,7 @@ export default function NewDeal() {
       <s-stack gap="base" padding="base none">
         <s-heading>Crear Nuevo Contrato</s-heading>
 
-        <DealForm actionData={actionData} />
+        <DealForm actionData={actionData} senders={senders} />
       </s-stack>
     </s-page>
   )
