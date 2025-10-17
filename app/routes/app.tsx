@@ -22,6 +22,7 @@ export default function App() {
         <s-link href="/app/config">Configuración</s-link>
         <s-link href="/app/deals">Contratos</s-link>
         <s-link href="/app/senders">Remitentes</s-link>
+        <s-link href="/app/carrier-services">Carrier Services</s-link>
       </s-app-nav>
       <Outlet />
     </AppProvider>

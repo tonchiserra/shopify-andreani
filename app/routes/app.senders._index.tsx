@@ -57,11 +57,6 @@ export default function Index() {
 
   return (
     <s-stack gap="base" padding="base none">
-      <s-stack direction="inline" justifyContent="space-between" alignItems="center">
-        <s-heading>Remitentes</s-heading>
-        <s-button href="/app/senders/new" variant="primary">Crear Remitente</s-button>
-      </s-stack>
-
       {
         senders.length === 0
         ? <NoContent message="No hay remitentes disponibles. Empieza creando uno nuevo." cta="/app/senders/new" ctaLabel="Crear Remitente" />

@@ -4,6 +4,7 @@ export { senderService } from "./sender.server"
 export { locationService } from "./location.server"
 export { configService } from "./config.server"
 export { shippingQuoteService } from "./shipping-quote.server"
+export { carrierServiceService } from "./carrier-service.server"
 
 // Export all types for easy importing
 export type {
@@ -33,3 +34,9 @@ export type {
   ShippingQuoteWithRelations,
   CreateShippingQuoteInput
 } from "./shipping-quote.server"
+
+export type {
+  DeliveryCarrierService,
+  DeliveryCarrierServiceCreateInput,
+  DeliveryCarrierServiceUpdateInput
+} from "./carrier-service.server"
