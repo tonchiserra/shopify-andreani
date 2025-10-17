@@ -5,6 +5,7 @@ export { locationService } from "./location.server"
 export { configService } from "./config.server"
 export { shippingQuoteService } from "./shipping-quote.server"
 export { carrierServiceService } from "./carrier-service.server"
+export { andreaniService } from "./andreani.server"
 
 // Export all types for easy importing
 export type {
@@ -40,3 +41,8 @@ export type {
   DeliveryCarrierServiceCreateInput,
   DeliveryCarrierServiceUpdateInput
 } from "./carrier-service.server"
+
+export type {
+  ShopifyShippingRateRequest,
+  ShopifyShippingRateResponse
+} from "./andreani.server"

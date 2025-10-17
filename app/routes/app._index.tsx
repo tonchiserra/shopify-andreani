@@ -9,9 +9,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function Index() {
   return (
-    <s-page>
+    <s-page heading="Andreani">
       <s-stack gap="base" padding="base">
-        <s-heading>Home</s-heading>
       </s-stack>
     </s-page>
   );

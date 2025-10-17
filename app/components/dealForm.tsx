@@ -74,8 +74,8 @@ export default function DealForm({actionData, deal, senders = []}: {actionData?:
 				<s-section heading="Configuración de envío">
 					<s-stack gap="base">
 						<s-switch 
-							label="Envío a ubicación específica" 
-							details="Activar si el contrato requiere envío a una ubicación específica" 
+							label="Envío a sucursal" 
+							details="Activar si el contrato requiere envío a una sucursal" 
 							name="toLocation"
 							checked={deal?.toLocation}
 						></s-switch>
