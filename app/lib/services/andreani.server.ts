@@ -1,3 +1,5 @@
+import { configService } from "./index"
+
 type ShopifyDestination = {
     country:        string
     postal_code:    string
@@ -47,8 +49,8 @@ export type ShopifyShippingRateResponse = {
         total_price:        string
         description:        string
         currency:           string
-        min_delivery_date:  string
-        max_delivery_date:  string   
+        min_delivery_date?:  string
+        max_delivery_date?:  string   
     }>
 }
 
@@ -69,13 +71,13 @@ export type AndreaniShippingRateRequest = {
 }
 
 export type AndreaniShippingRateResponse = {
-    pesoAforado: string
-    tarifaSinIva: {
+    pesoAforado?: string
+    tarifaSinIva?: {
         seguroDistribucion: string
         distribucion: string
         total: string
     }
-    tarifaConIva: {
+    tarifaConIva?: {
         seguroDistribucion: string
         distribucion: string
         total: string
@@ -83,18 +85,22 @@ export type AndreaniShippingRateResponse = {
 }
 
 export const andreaniService = {
-    async getShippingRates(shippingRateRequest: ShopifyShippingRateRequest): Promise<ShopifyShippingRateResponse> {
-        // Armar payload para API de Andreani de tipo AndreaniShippingRateRequest
-        // Hacer GET a API de Andreani /v1/tarifas
-        // Obtener respuesta de tipo AndreaniShippingRateResponse
-        // Mapear respuesta de Andreani a formato ShopifyShippingRateResponse
-        // Retornar respuesta mapeada
-
+    async getShippingRates(payload: AndreaniShippingRateRequest): Promise<AndreaniShippingRateResponse> {
+        let RESULT: AndreaniShippingRateResponse = {}
         
-        const RESULT: ShopifyShippingRateResponse = {
-            rates: []
-        }
+        try {
+            // Chequar cómo paso el payload en GET
+            const response = await fetch(`${configService.getActiveApiUrl()}/v1/tarifas`)
+            
+            if(!response.ok) throw new Error(`Error fetching Andreani rates: ${response.statusText}`)
 
+            RESULT = await response.json()
+            return RESULT
+
+        }catch(error) {
+            console.error("Error fetching Andreani rates:", error)
+        }
+        
         return RESULT
     }
 }

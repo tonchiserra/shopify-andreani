@@ -122,4 +122,13 @@ export const configService = {
     
     return config !== null
   },
+
+  // UTILITY - Get active API URL
+  async getActiveApiUrl(): Promise<string | null> {
+    const config = await this.getConfig()
+    
+    if(!config || !config.accessData) return null
+    
+    return config.isProduction ? config.accessData.urlProd : config.accessData.urlTest
+  }
 }

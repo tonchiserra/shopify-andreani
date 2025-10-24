@@ -44,5 +44,7 @@ export type {
 
 export type {
   ShopifyShippingRateRequest,
-  ShopifyShippingRateResponse
+  ShopifyShippingRateResponse,
+  AndreaniShippingRateRequest,
+  AndreaniShippingRateResponse
 } from "./andreani.server"
