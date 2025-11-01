@@ -1,16 +1,17 @@
 import { useLoaderData, type HeadersFunction, type LoaderFunctionArgs, Form, useActionData } from "react-router"
 import { authenticate } from "../shopify.server"
 import { boundary } from "@shopify/shopify-app-react-router/server"
-import { AppMode, configService, type ConfigWithRelations } from "app/lib/services/index"
-import { useEffect } from "react"
+import { AppMode, configService, type ConfigWithRelations, carrierServiceService, type DeliveryCarrierService, DeliveryCarrierServiceCreateInput, DeliveryCarrierServiceUpdateInput } from "app/lib/services/index"
+import { useEffect, useRef } from "react"
 import { showToast } from "app/lib/utils/shopify-apis"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request)
 
   const config = await configService.getOrCreateConfig()
+  const carrierServices = await carrierServiceService.getAll(request)
 
-  return { config } as { config: ConfigWithRelations }
+  return { config, carrierServices } as { config: ConfigWithRelations, carrierServices: Array<DeliveryCarrierService> }
 }
 
 export const action = async ({ request }: LoaderFunctionArgs) => {
@@ -19,24 +20,59 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
   try {
     const formData = await request.formData()
 
-      const configData = {
-        enabled: formData.get('enabled') === 'on',
-        isProduction: formData.get('mode') === 'production',
-        appMode: formData.get('appMode') as AppMode,
-        accessData: {
-          user: formData.get('user') as string,
-          pass: formData.get('pass') as string,
-          clientId: formData.get('clientId') as string,
-          urlProd: formData.get('urlProd') as string,
-          urlTest: formData.get('urlTest') as string,
-        },
-        freeShippingThreshold: parseFloat(formData.get('freeShippingThreshold') as string) || 0,
-        defaultWeight: parseFloat(formData.get('defaultWeight') as string) || 0,
+    if(formData.get('intent') === 'delete') {
+      const carrierServiceId = formData.get('id') as string
+      if(carrierServiceId) {
+        await carrierServiceService.delete(request, carrierServiceId)
+        return { success: true, message: 'Carrier Service eliminado exitosamente' }
       }
-      
-      await configService.update(configData)
-      
-      return { success: true, message: 'Configuración guardada exitosamente' }
+
+      return { success: false, message: 'Carrier Service no encontrado' }
+    }
+
+    const configData = {
+      enabled: formData.get('enabled') === 'on',
+      isProduction: formData.get('mode') === 'production',
+      appMode: formData.get('appMode') as AppMode,
+      accessData: {
+        user: formData.get('user') as string,
+        pass: formData.get('pass') as string,
+        clientId: formData.get('clientId') as string,
+        urlProd: formData.get('urlProd') as string,
+        urlTest: formData.get('urlTest') as string,
+      },
+      freeShippingThreshold: parseFloat(formData.get('freeShippingThreshold') as string) || 0,
+      defaultWeight: parseFloat(formData.get('defaultWeight') as string) || 0,
+    }
+    
+    const carrierServiceDataCreate: DeliveryCarrierServiceCreateInput = {
+      name: formData.get('carrierServiceName') as string,
+      callbackUrl: formData.get('carrierServiceCallbackUrl') as string,
+      active: formData.get('carrierServiceActive') === 'on',
+      supportsServiceDiscovery: formData.get('carrierServiceSupportsServiceDiscovery') === 'on'
+    }
+
+    if (!carrierServiceDataCreate.name || !carrierServiceDataCreate.callbackUrl) {
+      return { 
+        success: false, 
+        message: 'El nombre y la URL de callback son obligatorios',
+        errors: {
+          carrierServiceName: !carrierServiceDataCreate.name ? 'El nombre es obligatorio' : '',
+          carrierServiceCallbackUrl: !carrierServiceDataCreate.callbackUrl ? 'La URL de callback es obligatoria' : ''
+        }
+      }
+    }
+
+    await configService.update(configData)
+
+    if(formData.get('carrierServiceId')) {
+      const carrierServiceDataUpdate: DeliveryCarrierServiceUpdateInput = { ...carrierServiceDataCreate, id: formData.get('carrierServiceId') as string }
+      await carrierServiceService.update(request, carrierServiceDataUpdate) 
+    }
+    else await carrierServiceService.create(request, carrierServiceDataCreate)
+
+    
+    return { success: true, message: 'Configuración guardada exitosamente' }
     
   } catch (error) {
     console.error('Error saving data:', error)
@@ -45,8 +81,10 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
 }
 
 export default function Index() {
-  const { config } = useLoaderData<typeof loader>()
+  const { config, carrierServices } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
+  const carrierService = carrierServices[0]
+  const deleteCarrierServiceForm = useRef<HTMLFormElement>(null)
   
   useEffect(() => {
     if(actionData?.message) {
@@ -165,8 +203,75 @@ export default function Index() {
                 />
               </s-grid>
             </s-section>
+
+            <s-section heading="Carrier Service">
+              <s-grid gap="base" gridTemplateColumns="1fr 1fr">
+                {
+                  carrierService?.id && (
+                    <s-text-field
+                      label="ID del Carrier Service"
+                      placeholder="ID del carrier service"
+                      name="carrierServiceId"
+                      readOnly
+                      value={carrierService?.id ?? ''}
+                    />
+                  )
+                }
+
+                <s-grid-item gridColumn="span 2">
+                  <s-switch 
+                    label="Activar Carrier Service" 
+                    details="Asegurate de que todo esté configurado correctamente antes de activar el carrier service" 
+                    name="carrierServiceActive"
+                    checked={carrierService?.active ?? false}
+                  />
+                </s-grid-item>
+
+                <s-text-field 
+                  label="Nombre" 
+                  placeholder="Nombre del carrier service" 
+                  name="carrierServiceName"
+                  required
+                  error={actionData?.errors?.carrierServiceName}
+                  value={carrierService?.name ?? ''}
+                />
+
+                <s-text-field 
+                  label="URL de callback" 
+                  placeholder="Endpoint de tu API" 
+                  name="carrierServiceCallbackUrl"
+                  required
+                  error={actionData?.errors?.carrierServiceCallbackUrl}
+                  value={carrierService?.callbackUrl ?? ''}
+                />
+
+                <s-grid-item gridColumn="span 2">
+                  <s-switch 
+                    label="Soporta Service Discovery" 
+                    details="Asegurate de que soporta service discovery antes de activarlo" 
+                    name="carrierServiceSupportsServiceDiscovery"
+                    checked={carrierService?.supportsServiceDiscovery ?? false}
+                  />
+                </s-grid-item>
+
+                {
+                  !!carrierService && (
+                    <s-button type="button" tone="critical" variant="primary" onClick={() => deleteCarrierServiceForm?.current?.submit()}>Eliminar</s-button>
+                  )
+                }
+              </s-grid>
+            </s-section>
           </s-stack>
         </Form>
+
+        {
+          !!carrierService && (
+            <Form method="POST" id="deleteCarrierServiceForm" ref={deleteCarrierServiceForm}>
+              <input type="hidden" name="id" value={carrierService.id} />
+              <input type="hidden" name="intent" value="delete" />
+            </Form>
+          )
+        }
       </s-stack>
     </s-page>
   )

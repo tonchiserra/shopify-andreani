@@ -59,7 +59,7 @@ export default function Index() {
     <s-stack gap="base" padding="base none">
       {
         senders.length === 0
-        ? <NoContent message="No hay remitentes disponibles. Empieza creando uno nuevo." cta="/app/senders/new" ctaLabel="Crear Remitente" />
+        ? <NoContent message="No hay remitentes disponibles. Empieza creando uno nuevo." cta="/app/senders/new" ctaLabel="Crear remitente" />
         : <SendersTable senders={senders} />
       }
     </s-stack>

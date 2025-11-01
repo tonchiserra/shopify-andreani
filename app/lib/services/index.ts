@@ -44,6 +44,7 @@ export type {
 
 export type {
   ShopifyShippingRateRequest,
+  ShopifyShippingRate,
   ShopifyShippingRateResponse,
   AndreaniShippingRateRequest,
   AndreaniShippingRateResponse

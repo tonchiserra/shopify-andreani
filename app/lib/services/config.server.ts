@@ -130,5 +130,14 @@ export const configService = {
     if(!config || !config.accessData) return null
     
     return config.isProduction ? config.accessData.urlProd : config.accessData.urlTest
+  },
+
+  // UTILITY - Get client ID
+  async getClientId(): Promise<string | null> {
+    const config = await this.getConfig()
+
+    if(!config || !config.accessData) return null
+
+    return config.accessData.clientId
   }
 }

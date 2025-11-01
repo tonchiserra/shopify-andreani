@@ -10,7 +10,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function Index() {
   return (
     <s-page heading="Contratos" inlineSize="large">
-      <s-button slot="primary-action" href="/app/deals/new" variant="primary">Crear Contrato</s-button>
+      <s-button slot="primary-action" href="/app/deals/new" variant="primary">Crear contrato</s-button>
       <Outlet />
     </s-page>
   )

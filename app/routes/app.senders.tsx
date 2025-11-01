@@ -10,7 +10,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function Index() {
   return (
     <s-page heading="Remitentes" inlineSize="large">
-      <s-button slot="primary-action" href="/app/senders/new" variant="primary">Crear Remitente</s-button>
+      <s-button slot="primary-action" href="/app/senders/new" variant="primary">Crear remitente</s-button>
       <Outlet />
     </s-page>
   )

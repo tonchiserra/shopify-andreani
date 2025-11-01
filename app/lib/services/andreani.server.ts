@@ -1,4 +1,5 @@
 import { configService } from "./index"
+import qs from "qs"
 
 type ShopifyDestination = {
     country:        string
@@ -42,16 +43,18 @@ export type ShopifyShippingRateRequest = {
     }
 }
 
+export type ShopifyShippingRate = {
+    service_name:       string
+    service_code:       string
+    total_price:        string
+    description:        string
+    currency:           string
+    min_delivery_date?:  string
+    max_delivery_date?:  string   
+}
+
 export type ShopifyShippingRateResponse = {
-    rates: Array<{
-        service_name:       string
-        service_code:       string
-        total_price:        string
-        description:        string
-        currency:           string
-        min_delivery_date?:  string
-        max_delivery_date?:  string   
-    }>
+    rates: Array<ShopifyShippingRate>
 }
 
 export type AndreaniShippingRateRequest = {
@@ -89,8 +92,9 @@ export const andreaniService = {
         let RESULT: AndreaniShippingRateResponse = {}
         
         try {
-            // Chequar cómo paso el payload en GET
-            const response = await fetch(`${configService.getActiveApiUrl()}/v1/tarifas`)
+            const queryString = qs.stringify(payload, { arrayFormat: 'brackets' })
+            
+            const response = await fetch(`${configService.getActiveApiUrl()}/v1/tarifas?${queryString}`)
             
             if(!response.ok) throw new Error(`Error fetching Andreani rates: ${response.statusText}`)
 

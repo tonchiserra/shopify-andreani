@@ -59,7 +59,7 @@ export default function DealsIndex() {
     <s-stack gap="base" padding="base none">
       { 
         deals.length === 0 
-        ? <NoContent message="No hay contratos disponibles. Empieza creando uno nuevo." cta="/app/deals/new" ctaLabel="Crear Contrato" />
+        ? <NoContent message="No hay contratos disponibles. Empieza creando uno nuevo." cta="/app/deals/new" ctaLabel="Crear contrato" />
         : <DealsTable deals={deals} />
       }
     </s-stack>
