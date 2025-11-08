@@ -1,8 +1,6 @@
 Los siguientes campos no se están utilizando:
 
 Config:
-- enabled
-- freeShippingThreshold
 - appMode
 - defaultWeight
 - user

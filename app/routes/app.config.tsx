@@ -221,7 +221,6 @@ export default function Index() {
                 <s-grid-item gridColumn="span 2">
                   <s-switch 
                     label="Activar Carrier Service" 
-                    details="Asegurate de que todo esté configurado correctamente antes de activar el carrier service" 
                     name="carrierServiceActive"
                     checked={carrierService?.active ?? false}
                   />
@@ -248,7 +247,6 @@ export default function Index() {
                 <s-grid-item gridColumn="span 2">
                   <s-switch 
                     label="Soporta Service Discovery" 
-                    details="Asegurate de que soporta service discovery antes de activarlo" 
                     name="carrierServiceSupportsServiceDiscovery"
                     checked={carrierService?.supportsServiceDiscovery ?? false}
                   />

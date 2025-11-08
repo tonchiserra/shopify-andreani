@@ -47,20 +47,13 @@ export const senderService = {
   },
 
   // READ - Get all senders
-  async getAll(includeRelations = true): Promise<SenderWithRelations[] | Sender[]> {
+  async getAll(includeRelations = true): Promise<SenderWithRelations[]> {
     return prisma.sender.findMany({
       ...(includeRelations && {
         include: {
           deals: {
             include: {
-              deal: {
-                select: {
-                  id: true,
-                  name: true,
-                  number: true,
-                  price: true
-                }
-              }
+              deal: true
             }
           }
         }

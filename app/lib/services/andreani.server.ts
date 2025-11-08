@@ -38,6 +38,11 @@ export type ShopifyShippingRateRequest = {
             product_id: number
             variant_id: number
         }>
+        order_totals: {
+            subtotal_price: number
+            total_price: number
+            discount_amount: number
+        },
         currency: string
         locale: string
     }
@@ -46,7 +51,7 @@ export type ShopifyShippingRateRequest = {
 export type ShopifyShippingRate = {
     service_name:       string
     service_code:       string
-    total_price:        string
+    total_price:        string | number
     description:        string
     currency:           string
     min_delivery_date?:  string
@@ -87,17 +92,31 @@ export type AndreaniShippingRateResponse = {
     }
 }
 
+export type AndreaniShippingRateResponseError = {
+    type: string
+    title: string
+    detail: string
+    status: number
+    errors?: string[]
+}
+
 export const andreaniService = {
     async getShippingRates(payload: AndreaniShippingRateRequest): Promise<AndreaniShippingRateResponse> {
         let RESULT: AndreaniShippingRateResponse = {}
         
         try {
-            const queryString = qs.stringify(payload, { arrayFormat: 'brackets' })
-            
-            const response = await fetch(`${configService.getActiveApiUrl()}/v1/tarifas?${queryString}`)
-            
-            if(!response.ok) throw new Error(`Error fetching Andreani rates: ${response.statusText}`)
+            const activeApiUrl = await configService.getActiveApiUrl()
+            if(!activeApiUrl) throw new Error("No active Andreani API URL configured")
 
+            const queryString = qs.stringify(payload, { arrayFormat: 'indices' })
+            
+            const response = await fetch(`${activeApiUrl}/v1/tarifas?${queryString}`)
+            
+            if(!response.ok) {
+                const error = await response.json() as AndreaniShippingRateResponseError
+                throw new Error(`${error.detail || 'Error fetching Andreani rates'}`)
+            }
+                
             RESULT = await response.json()
             return RESULT
 
