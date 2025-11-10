@@ -2,13 +2,11 @@ import type { LoaderFunctionArgs } from "react-router"
 import { type ShopifyShippingRateRequest, type ShopifyShippingRateResponse, type AndreaniShippingRateRequest, type AndreaniShippingRateResponse, andreaniService, configService, senderService } from "app/lib/services/index"
 
 export const action = async ({ request }: LoaderFunctionArgs) => {
+    console.log("")
+    console.log("")
+    console.log("")
+    console.log("Andreani Rates Request Received")
     if(request.method !== 'POST') return new Response('Method not allowed', { status: 405 })
-
-    const contentType = request.headers.get('content-type')
-    if (!contentType || !contentType.includes('application/json')) return new Response('Invalid content type', { status: 400 })
-
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) return new Response('Unauthorized', { status: 401 })
 
     const shopifyResponse: ShopifyShippingRateResponse = {
         rates: []
@@ -31,6 +29,7 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
 
     for(let i=0; i<senders.length; i++) {
         const sender = senders[i]
+
         if(!sender.active) continue
         if(body.rate.origin.postal_code !== sender.locationZip || body.rate.origin.address1 !== sender.locationAddress1) continue
         if(!sender.deals || sender.deals?.length === 0) continue
@@ -43,7 +42,7 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
                     service_name: senderDeal.deal.name || "Andreani Service",
                     service_code: `${senderDeal.id}`,
                     total_price: 0,
-                    description: "",
+                    description: senderDeal.deal.toLocation ? "Envío gratuito a sucursal" : "Envío gratuito a domicilio",
                     currency: body.rate.currency
                 })
 
@@ -71,7 +70,7 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
                 service_name: senderDeal.deal.name || "Andreani Service",
                 service_code: `${senderDeal.id}`,
                 total_price: Math.round(responseTotal * 100),
-                description: "",
+                description: senderDeal.deal.toLocation ? "Envío a sucursal" : "Envío a domicilio",
                 currency: body.rate.currency
             })
         }
